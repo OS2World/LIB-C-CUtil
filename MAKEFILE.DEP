@@ -1,0 +1,68 @@
+.\History.obj: \
+    .\History.c \
+    {.;$(INCLUDE);}cutil.h \
+    MAKEFILE
+
+.\fDes.obj: \
+    .\fDes.c \
+    MAKEFILE
+
+.\fDeDes.obj: \
+    .\fDeDes.c \
+    MAKEFILE
+
+.\Encrypt.obj: \
+    .\Encrypt.c \
+    {.;$(INCLUDE);}crypt.h \
+    MAKEFILE
+
+.\DelDir.obj: \
+    .\DelDir.c \
+    MAKEFILE
+
+.\Decrypt.obj: \
+    .\Decrypt.c \
+    {.;$(INCLUDE);}crypt.h \
+    MAKEFILE
+
+.\DateTime.obj: \
+    .\DateTime.c \
+    {.;$(INCLUDE);}cutil.h \
+    MAKEFILE
+
+.\Chiffre.obj: \
+    .\Chiffre.c \
+    {.;$(INCLUDE);}crypt.h \
+    MAKEFILE
+
+.\Crypt.obj: \
+    .\Crypt.c \
+    {.;$(INCLUDE);}crypt.h \
+    MAKEFILE
+
+.\BUILDENV.obj: \
+    .\BUILDENV.C \
+    MAKEFILE
+
+.\EA.obj: \
+    .\EA.c \
+    {.;$(INCLUDE);}cutil.h \
+    MAKEFILE
+
+.\GetLang.obj: \
+    .\GetLang.C \
+    {.;$(INCLUDE);}cutil.h \
+    MAKEFILE
+
+# object files for long64 calls
+.\long64toa.obj: \
+    .\long64toa.c \
+    {.;$(INCLUDE);}long64.h \
+    .\MAKEFILE
+
+.\long64.obj: \
+    .\long64.asm \
+    {.;$(INCLUDE);}long64.h \
+    .\MAKEFILE
+
+

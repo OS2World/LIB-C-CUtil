@@ -1,0 +1,51 @@
+# Created by IBM WorkFrame/2 MakeMake at 01:21:49 on 04/09/94
+#
+# This makefile should be run in the following directory:
+#   d:\work\c\cutil
+#
+# The actions included in this makefile are:
+#   COMPILE::CLC C
+#   ILIB::Object Library Manager
+
+.all: \
+  .\CUTIL.LIB
+
+.SUFFIXES:
+
+.SUFFIXES: .c .asm .obj
+
+.asm.obj:
+      @echo Compile::Assembler
+      alp +Ods +Odl +Fl +Lm -LcC -LcF -Lr -LcI:OFF -LcM:OFF -LcD:OFF -LcZ:OFF -LcX %s
+
+.c.obj:
+      @echo Compile::C-Compiler
+      icc.exe /Ss /Q /Wcnvparprorearetuse /Ti /Gm /G5 /Gn /Ms /C %s
+
+.\CUTIL.LIB: \
+    .\History.obj \
+    .\EA.obj \
+    .\BUILDENV.obj \
+    .\Chiffre.obj \
+    .\Crypt.obj \
+    .\DateTime.obj \
+    .\Decrypt.obj \
+    .\DelDir.obj \
+    .\Encrypt.obj \
+    .\fDeDes.obj \
+    .\fDes.obj \
+    .\GetLang.obj \
+    .\long64.obj \
+    .\long64toa.obj \
+    MAKEFILE
+      @echo WF::ILIB::Object Library Manager
+      ilib.exe  /nol CUTIL.LIB -+History.obj -+EA.obj -+BUILDENV.obj -+Chiffre.obj -+Crypt.obj -+DateTime.obj -+Decrypt.obj -+DelDir.obj -+Encrypt.obj -+fDeDes.obj -+fDes.obj -+GetLang.obj -+.\long64toa.obj -+long64.obj;
+
+!include MAKEFILE.Dep
+
+cleanall:
+      @if exist *.obj del *.obj
+      @if exist *.lib del *.lib
+      @if exist *.lst del *.lst
+
+

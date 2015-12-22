@@ -1,0 +1,142 @@
+
+
+    File: .\long64.asm  Pass: 2   ALP: Assembly Language Processor  Ver 4.00.008   Page:    1
+
+
+        1  0000                            ;@C       /****************************************************************************\
+        2                                  ;@C        *                                                                          *
+        3                                  ;@C       \****************************************************************************/
+        4                                            TITLE     long64.c
+        5            @Cpu=00000DBF                       .586p
+        6                                                .model    flat, syscall
+        7
+        8
+        9  00000000                            LONG64    struct
+       10  00000000  00000000                  ulLo      DWORD     ?
+       11  00000004  00000000                  lHi       DWORD     ?
+       12  00000008                            LONG64    ends
+       13
+       14  00000000                            LONG32    struct
+       15  00000000  0000                      ulLo      WORD      ?
+       16  00000002  0000                      lHi       WORD      ?
+       17  00000004                            LONG32    ends
+       18
+       19                                      PLONG64   typedef   PTR LONG64
+       20                                      PLONG32   typedef   PTR LONG32
+       21
+       22                                      CODE32    SEGMENT   dword use32 PUBLIC 'CODE'
+       23  00000000                            CODE32    ENDS
+       24
+       25                                      DATA32    SEGMENT   dword use32 PUBLIC 'DATA'
+       26  00000000                            DATA32    ENDS
+       27
+       28                                      CODE32    SEGMENT
+       29                                                ASSUME    CS: CODE32, DS: DATA32, SS: DATA32
+       30
+       31                                      ;-----    LONG64 _System long64Add (const LONG64 *pa, const LONG64 *pb)
+       32  00000000                            long64Add PROC      NEAR32 SYSCALL PUBLIC USES ESI,
+       33                                                          retVal: PLONG64,
+       34                                                          pa: PLONG64,
+       35                                                          pb: PLONG64
+       36
+       37  00000000  55                      >  push ebp
+       37  00000001  8B EC                   >  mov ebp,esp
+       37  00000003  56                      >  push ESI
+       37  00000004  8D 75 [0C]                          lea       ESI, pa                       ; load *pa into EBX:EAX
+       38  00000007  8B 36                               mov       ESI, [ESI]
+       39  00000009  8B 06                               mov       EAX, [ESI] + LONG64.ulLo
+       40  0000000B  8B 5E [04]                          mov       EBX, [ESI] + LONG64.lHi
+       41
+       42  0000000E  8D 75 [10]                          lea       ESI, pb                       ; add *pb to EBX:EAX
+       43  00000011  8B 36                               mov       ESI, [ESI]
+       44  00000013  03 06                               add       EAX, [ESI] + LONG64.ulLo
+       45  00000015  13 5E [04]                          adc       EBX, [ESI] + LONG64.lHi
+       46
+       47  00000018  8D 75 [08]                          lea       ESI, retVal                   ; write result to retVal
+       48  0000001B  8B 36                               mov       ESI, [ESI]
+       49  0000001D  89 06                               mov       [ESI] + LONG64.ulLo, EAX
+       50  0000001F  89 5E [04]                          mov       [ESI] + LONG64.lHi, EBX
+       51
+       52  00000022                                      ret
+       52  00000022  5E                      >  pop ESI
+       52  00000023  C9                      >  leave
+
+
+    File: .\long64.asm  Pass: 2   ALP: Assembly Language Processor  Ver 4.00.008   Page:    2
+    long64.c
+
+
+       52  00000024  C3                      >  retn 00000h
+       53  00000025                            long64Add ENDP
+       54
+       55                                      ;-----    LONG64 _System long64Div (const LONG64 *pa, LONG b, PLONG pr)
+       56  00000025                            long64Div PROC      NEAR32 SYSCALL PUBLIC USES ESI,
+       57                                                          retVal: PLONG64,
+       58                                                          pa: PLONG64,
+       59                                                          b: DWORD,
+       60                                                          pr: PTR DWORD
+       61
+       62                                      ;-----    kkkkllll:mmmmnnnn = wwwwxxxx:yyyyzzzz : aaaabbbb, remainder ppppqqqq
+       63  00000025  55                      >  push ebp
+       63  00000026  8B EC                   >  mov ebp,esp
+       63  00000028  56                      >  push ESI
+       63  00000029  8D 75 [0C]                          lea       ESI, pa                       ; load *pa
+       64  0000002C  8B 36                               mov       ESI, [ESI]
+       65  0000002E  8B 1E                               mov       EBX, [ESI] + LONG64.ulLo      ; EBX contains yyyyzzzz
+       66  00000030  8B 46 [04]                          mov       EAX, [ESI] + LONG64.lHi       ; EDX:EAX contains 00000000:wwwwxxxx
+       67  00000033  33 D2                               xor       EDX, EDX
+       68
+       69  00000035  8D 7D [08]                          lea       EDI, retVal                   ; pointer to result
+       70  00000038  8B 3F                               mov       EDI, [EDI]
+       71
+       72                                      ;-----    1. step:        d = 00000000:wwwwxxxx : aaaabbbb, remainder r1
+       73                                      ;         after division: EAX contains kkkkllll
+       74                                      ;                         EDX contains remainder r1 = rrrrrrrr
+       75                                      ;                      => retVal = kkkkllll:00000000
+       76  0000003A  F7 7D [10]                          idiv      b
+       77  0000003D  89 47 [04]                          mov       [EDI] + LONG64.lHi, EAX
+       78
+       79                                      ;-----    2. step:        EDX = rrrrrrrr,  EAX = yyyyzzzz
+       80                                      ;         shift right:    EDX:EAX = 0000rrrr:rrrryyyy
+       81                                      ;         divide:         d = 0000rrrr:rrrryyyy : aaaabbbb, remainder r2
+       82                                      ;         after division: EAX contains 0000mmmm
+       83                                      ;                         EDX contains remainder r2 = rrrrrrrr
+       84                                      ;                      => retVal = kkkkllll:mmmm0000
+       85  00000040  8B C3                               mov       EAX, EBX                      ; EAX = yyyyzzzz
+       86  00000042  0F AC D0 10                         shrd      EAX, EDX, 16                  ; EDX:EAX = rrrr:rrrryyyy
+       87  00000046  C1 EA 10                            shr       EDX, 16
+       88  00000049  F7 7D [10]                          idiv      b
+       89  0000004C  C1 E0 10                            shl       EAX, 16
+       90  0000004F  89 07                               mov       [EDI] + LONG64.ulLo, EAX
+       91
+       92                                      ;-----    3. step:        EDX = rrrrrrrr, EAX = yyyyzzzz
+       93                                      ;         shift right     EDX:EAX = 0000rrrr:rrrrzzzz
+       94                                      ;         divide:         d = 0000rrrr:rrrrzzzz : aaaabbbb, remainder r3
+       95                                      ;         after division: EAX contains 0000nnnn
+       96                                      ;                         EDX contains remainder r3 = ppppqqqq
+       97                                      ;                      => retVal = kkkkllll:mmmmnnnn
+       98  00000051  8B C3                               mov       EAX, EBX
+       99  00000053  C1 E0 10                            shl       EAX, 16                       ; EAX = zzzz0000
+      100  00000056  0F AC D0 10                         shrd      EAX, EDX, 16                  ; EDX:EAX = 0000rrrr:rrrrzzzz
+      101  0000005A  C1 EA 10                            shr       EDX, 16
+      102  0000005D  F7 7D [10]                          idiv      b
+      103  00000060  01 07                               add       [EDI] + LONG64.ulLo, EAX
+      104
+
+
+    File: .\long64.asm  Pass: 2   ALP: Assembly Language Processor  Ver 4.00.008   Page:    3
+    long64.c
+
+
+      105  00000062  8D 75 [14]                          lea       ESI, pr                       ; return remainder
+      106  00000065  8B 36                               mov       ESI, [ESI]
+      107  00000067  89 16                               mov       [ESI], EDX
+      108
+      109  00000069                                      ret
+      109  00000069  5E                      >  pop ESI
+      109  0000006A  C9                      >  leave
+      109  0000006B  C3                      >  retn 00000h
+      110  0000006C                            long64Div ENDP
+      111
+      112  0000006C                            CODE32    ENDS
+      113                                                END
